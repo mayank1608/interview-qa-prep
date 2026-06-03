@@ -1,0 +1,337 @@
+✅ 🧠 State & Hooks
+
+1. Build a Counter using useState
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+};
+``
+------------------------------------------------------
+------------------------------------------------------
+2. Create a toggle button component
+const Toggle = () => {
+  const [on, setOn] = useState(false);
+  return <button onClick={() => setOn(v => !v)}>{on ? 'ON' : 'OFF'}</button>;
+};
+
+------------------------------------------------------
+------------------------------------------------------
+3. Implement a custom useToggle hook
+const useToggle = (init=false) => {
+  const [state, set] = useState(init);
+  return [state, () => set(s => !s)];
+};
+------------------------------------------------------
+------------------------------------------------------
+4. Write a custom usePrevious hook
+const usePrevious = value => {
+  const ref = useRef();
+  useEffect(() => { ref.current = value; });
+  return ref.current;
+};
+``
+------------------------------------------------------
+------------------------------------------------------
+5. Implement useDebounce hook
+const useDebounce = (value, delay=300) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value]);
+  return debounced;
+};
+------------------------------------------------------
+------------------------------------------------------
+6. Create useLocalStorage hook
+const useLocalStorage = (key, init) => {
+  const [val, setVal] = useState(() =>
+    JSON.parse(localStorage.getItem(key)) || init
+  );
+  useEffect(() => localStorage.setItem(key, JSON.stringify(val)), [val]);
+  return [val, setVal];
+};
+``
+------------------------------------------------------
+------------------------------------------------------
+7. Build useFetch hook with loading + error handling
+const useFetch = url => {
+  const [state, set] = useState({ data:null, loading:true, error:null });
+
+  useEffect(() => {
+    fetch(url)
+      .then(r => r.json())
+      .then(data => set({ data, loading:false }))
+      .catch(err => set({ error: err, loading:false }));
+  }, [url]);
+
+  return state;
+};
+``
+------------------------------------------------------
+------------------------------------------------------
+8. Implement useInterval hook
+const useInterval = (cb, delay) => {
+  useEffect(() => {
+    const id = setInterval(cb, delay);
+    return () => clearInterval(id);
+  }, [cb, delay]);
+};
+------------------------------------------------------
+------------------------------------------------------
+9. Build useOnClickOutside hook
+const useOnClickOutside = (ref, handler) => {
+  useEffect(() => {
+    const fn = e => !ref.current.contains(e.target) && handler();
+    document.addEventListener('mousedown', fn);
+    return () => document.removeEventListener('mousedown', fn);
+  }, []);
+};
+------------------------------------------------------
+------------------------------------------------------
+10. Create useWindowResize hook
+const useWindowResize = () => {
+  const [size, set] = useState([window.innerWidth, window.innerHeight]);
+  useEffect(() => {
+    const onResize = () => set([window.innerWidth, window.innerHeight]);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return size;
+};
+
+11. Create useThrottle hook
+import { useState, useRef, useEffect } from 'react';
+
+function useThrottle(value, delay) {
+  const [throttledValue, setThrottledValue] = useState(value);
+  const lastExecuted = useRef(Date.now());
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (Date.now() - lastExecuted.current >= delay) {
+        setThrottledValue(value);
+        lastExecuted.current = Date.now();
+      }
+    }, delay - (Date.now() - lastExecuted.current));
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return throttledValue;
+}
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+
+✅ 🧠 Rendering & Performance
+11. Prevent unnecessary re-renders using React.memo
+export default React.memo(Component);
+
+-----------------------------------------------------
+12. Implement a component with useMemo optimization
+const value = useMemo(() => expensiveFn(a), [a]);
+``
+
+-----------------------------------------------------
+13. Optimize callback using useCallback
+const fn = useCallback(() => doSomething(), []);
+
+-----------------------------------------------------
+14. Explain and implement list virtualization (react-window style)
+<FixedSizeList height={300} itemCount={1000} itemSize={35}>
+  {Row}
+</FixedSizeList>
+
+-----------------------------------------------------
+15. Build infinite scrolling list
+useEffect(() => {
+  const onScroll = () => {
+    if (window.innerHeight + scrollY >= document.body.offsetHeight) loadMore();
+  };
+  window.addEventListener('scroll', onScroll);
+}, []);
+-----------------------------------------------------
+16. Implement lazy loading using React.lazy + Suspense
+const Comp = React.lazy(() => import('./Comp'));
+<Suspense fallback="Loading"><Comp /></Suspense>
+
+-----------------------------------------------------
+17. Build image lazy-loading component
+<img loading="lazy" src="img.jpg" />
+
+-----------------------------------------------------
+18. Optimize large forms re-rendering
+- Split components
+- useRef instead of state
+- debouncing
+
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+✅ 🧠 Forms & Events
+19. Build controlled form with validation
+<input value={val} onChange={e => setVal} />
+
+--------------------------------------------------------
+20. Build uncontrolled form using refs
+const ref = useRef();
+<input ref={ref} />
+
+--------------------------------------------------------
+21. Create dynamic form fields (add/remove inputs)
+fields.map((f,i)=><input key={i} />)
+
+--------------------------------------------------------
+22. Implement form validation without libraries
+if (!email.includes('@')) setError('Invalid');
+
+--------------------------------------------------------
+23. Build reusable input component
+const Input = ({label,...props}) => (
+  <label>{label}<input {...props}/></label>
+);
+``
+--------------------------------------------------------
+24. Handle file upload in React
+<input type="file" onChange={e => setFile(e.target.files[0])} />
+
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+✅ 🧠 Component Design
+25. Build reusable Modal component
+26. Create Tabs component
+27. Build Accordion component
+28. Implement Dropdown with keyboard navigation
+29. Build reusable Table with sorting/filtering
+30. Create Pagination component
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+✅ 🧠 State Management
+31. Build global state using Context API
+32. Create simple Redux-like store using hooks
+33. Implement reducer pattern using useReducer
+34. Build shopping cart state logic
+
+✅ 🧠 Async & API
+35. Fetch API data with loading & retry logic
+36. Handle API errors globally
+37. Cancel API requests (AbortController)
+JSXuseEffect(() => {  const controller = new AbortController();  fetch('/api', { signal: controller.signal })    .then(res => res.json())    .catch(err => {      if (err.name !== 'AbortError') console.error(err);    });  return () => controller.abort();}, []);Show more lines
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+✅ 🧠 Routing
+38. Implement protected routes
+39. Create nested routing
+40. Handle route params & query params
+
+✅ 🧠 Advanced Patterns
+41. Implement Higher Order Component (HOC)
+42. Implement Render Props pattern
+43. Create compound component pattern
+44. Build custom hook for shared logic
+45. Implement Error Boundary
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+✅ 🧠 DOM & Refs
+46. Scroll to element using useRef
+47. Autofocus input field
+48. Forward refs using forwardRef
+49. Expose methods using useImperativeHandle
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+✅ 🧠 Real-world Challenges
+50. Build a Search Autocomplete component
+function Auto() {
+  const [q, setQ] = useState('');
+  const [list, setList] = useState([]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetch(`/api?q=${q}`).then(r => r.json()).then(setList);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  return (
+    <>
+      <input value={q} onChange={e => setQ(e.target.value)} />
+      {list.map(i => <div key={i.id}>{i.name}</div>)}
+    </>
+  );
+}
+
+
+React Query(TanStack Query now)
+
+✅ Installation
+npm install @tanstack/react-query
+
+✅ Setup (Mandatory)
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MyApp />
+    </QueryClientProvider>
+  );
+}
+
+
+✅ Basic Example (useQuery)
+import { useQuery } from '@tanstack/react-query';
+
+const fetchUsers = async () => {
+  const res = await fetch('https://jsonplaceholder.typicode.com/users');
+  return res.json();
+};
+
+function Users() {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['users'],
+    queryFn: fetchUsers
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error: {error.message}</p>;
+
+  return (
+    <ul>
+      {data.map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+``
+
+✅ Key Concepts
+1. queryKey
+Unique identifier for cache.
+👉 Enables caching & refetching.
+useQuery({ queryKey: ['users'] })useQuery({ queryKey: ['user', userId] })``
+
+2. queryFn
+Function that fetches data.
+queryFn: () => fetch('/api').then(res => res.json())
+
+3. Caching (BIG Advantage)
+React Query:
+
+Stores response in cache
+Avoids duplicate API calls
