@@ -335,3 +335,446 @@ React Query:
 
 Stores response in cache
 Avoids duplicate API calls
+
+**************************************************************************
+--------------------------------------------------------------------------
+**************************************************************************
+👉 What is hoisting?
+Hoisting is JavaScript’s behavior of moving variable and function declarations to the top of their scope during compilation, where variables declared with var are initialized as undefined, while let and const remain in a temporal dead zone until initialized.
+🔹 Example 1: Variable Hoisting (var)
+		console.log(a); // undefined
+		var a = 10;
+		console.log(a); // 10
+
+	🔍 What JS internally does:
+		// Creation phase
+		var a;   // hoisted with undefined
+
+		// Execution phase
+		console.log(a); // undefined
+		a = 10;
+		console.log(a); // 10
+	✅ Key Point:
+		var is hoisted and initialized as undefined
+
+🔹 Example 2: Function Hoisting
+	sayHello();
+
+	function sayHello() {
+	  console.log("Hello World");
+	}
+	✅ Output:
+	Hello World
+	
+🔹 Example 3: let and const (Important!)
+	console.log(b); // ❌ ReferenceError
+	let b
+	
+	Why error?
+		Because let and const are hoisted but NOT initialized
+		This area is called: Temporal Dead Zone (TDZ)
+		TDZ = Time between hoisting and initialization where variables cannot be accessed
+		
+		// hoisted internally but uninitialized
+		let b;
+
+		// accessing here → ERROR
+		``
+🔥 Example 4: Difference between var, let, const
+	console.log(x); // undefined
+	var x = 1;
+
+	console.log(y); // ReferenceError
+	let y = 2;
+
+	console.log(z); // ReferenceError
+	const z = 3;
+	``
+🔹 Example 5: Function vs Variable Hoisting
+	console.log(a); // function or undefined?
+	var a = 10;
+
+	function a() {
+	  console.log("I am function");
+	}
+
+	console.log(a); // 10
+	``
+	✅ Output:
+		function a() { ... }
+		10
+	
+	Why?
+		Because:
+			Function declaration hoisting takes higher priority
+			Later variable assignment overrides it
+			Internal conversion:
+			function a() {
+			  console.log("I am function");
+			}
+
+			var a;
+
+			console.log(a); // function
+			a = 10;
+			console.log(a); // 10
+
+🔹 Example 6: Function Expression (Important Interview Question)
+	sayHi(); // ❌ TypeError
+
+	var sayHi = function() {
+	  console.log("Hi");
+	};
+	``
+	
+✅ Why error?
+	Because only variable is hoisted, not function definition.
+	
+	Internal:
+	var sayHi = undefined;
+
+	sayHi(); // undefined() → TypeError
+
+	sayHi = function() {
+	  console.log("Hi");
+	};
+
+--------------------------------------------------------
+👉 What are closures?
+A closure is created when a function remembers (closes over) variables from its lexical scope, even after the outer function has finished execution.
+In simple terms:
+A function can access variables from its parent scope
+Even after the parent function is executed and gone from the stack
+🔹 Basic Example of Closure
+	function outer() {
+	  let count = 0;
+
+	  function inner() {
+		count++;
+		console.log(count);
+	  }
+
+	  return inner;
+	}
+
+	const fn = outer();  // outer() executed
+	fn(); // 1
+	fn(); // 2
+	fn(); // 3
+	``
+	🔍 What's happening here?
+	1) outer() executes → creates count
+	2) Returns inner function
+	3) Normally, outer() scope should be gone ✅
+	4) BUT inner() still remembers count ❗
+
+	👉 This memory retention is closure
+	
+🔥 Example 2: Data Encapsulation (Real-world use)
+	function createBankAccount(initialBalance) {
+	  let balance = initialBalance;
+
+	  return {
+		deposit(amount) {
+		  balance += amount;
+		  console.log(`Balance: ${balance}`);
+		},
+		withdraw(amount) {
+		  balance -= amount;
+		  console.log(`Balance: ${balance}`);
+		}
+	  };
+	}
+
+	const account = createBankAccount(1000);
+
+	account.deposit(500);  // 1500
+	account.withdraw(200); // 1300
+	
+	✅ Why closure is useful here?
+	balance is private
+	Cannot access directly:
+	console.log(account.balance); // undefined ❌	
+	👉 Closure provides data hiding + encapsulation
+	
+🔹 Example 3: Closure in Loops (Important Interview Question)
+	for (var i = 1; i <= 3; i++) {
+	  setTimeout(() => console.log(i), 1000);
+	}
+	❓ Output: 4 4 4
+	❗ Why?
+		var is function-scoped
+		All callbacks share same i
+		Loop ends → i = 4
+	✅ Fix using Closure (let)
+	for (let i = 1; i <= 3; i++) {
+	  setTimeout(() => console.log(i), 1000);
+	}
+	❓ Output: 1 2 3
+	✅ Alternative Fix using closure
+	for (var i = 1; i <= 3; i++) {
+	  (function (x) {
+		setTimeout(() => console.log(x), 1000);
+	  })(i);
+	}
+🔹 Example 4: Function Factory
+	function multiplier(factor) {
+	  return function (num) {
+		return num * factor;
+	  };
+	}
+
+	const double = multiplier(2);
+	const triple = multiplier(3);
+
+	console.log(double(5)); // 10
+	console.log(triple(5)); // 15
+	👉 Each function remembers its own factor
+🔹 Example 5: React Hook Internal Concept
+	Closures are heavily used in React:
+	function Counter() {
+	  let count = 0;
+
+	  return function () {
+		count++;
+		console.log(count);
+	  };
+	}
+	👉 Similar idea behind useState and event handlers
+
+--------------------------------------------------------
+👉 Explain React Fiber.
+React Fiber is the internal reconciliation and rendering engine of React that breaks rendering work into small units, allowing React to pause, resume, and prioritize updates for better performance and responsiveness.
+
+🔥 Fiber vs Old Reconciliation
+	Feature				Old React			Fiber
+	Rendering			Sync				Async (interruptible)
+	Performance			Can block UI		Smooth
+	Control				Low					High
+	Scheduling			None				Priority-based
+	
+🔹 Real Example using Concurrent Features
+	import { startTransition, useState } from "react";
+
+	function App() {
+	  const [input, setInput] = useState("");
+	  const [list, setList] = useState([]);
+
+	  function handleChange(e) {
+		const value = e.target.value;
+
+		setInput(value); // High priority
+
+		startTransition(() => {
+		  const items = Array.from({ length: 5000 }, (_, i) => value + i);
+		  setList(items); // Low priority (Fiber handles)
+		});
+	  }
+
+	  return (
+		<>
+		  <input onChange={handleChange} />
+		  {list.map((item, i) => (
+			<div key={i}>{item}</div>
+		  ))}
+		</>
+	  );
+	}
+	🔍 What Fiber does here:
+		Task						Priority
+		Input typing				HighList 
+		rendering (5000 items)		Low
+		👉 Result:
+		Typing is smooth ✅
+		Heavy rendering happens in background ✅
+		
+🧠 Scheduling & Priority (Very Important)
+	Fiber introduces priority-based scheduling
+		Examples:
+		Priority		Example
+		HighUser 		input, clicks
+		Medium			Animations
+		Low				Data rendering
+--------------------------------------------------------
+👉 What is code splitting?
+Code splitting is a performance optimization technique where large JavaScript bundles are split into smaller chunks that can be lazily loaded on demand, improving initial load time and application performance.
+
+🔥 Types of Code Splitting
+	1. Route-based splitting ✅ (Most common)
+	2. Component-based splitting
+	3. Library splitting
+	4. Dynamic import-based splitting
+	
+🔹 Live Example 1: Basic Lazy Loading (React)
+	❌ Normal Import (No Code Splitting)
+	import Dashboard from "./Dashboard";
+	👉 Loads immediately (even if not used)
+	
+	✅ With Code Splitting
+	import { lazy, Suspense } from "react";
+
+	const Dashboard = lazy(() => import("./Dashboard"));
+
+	function App() {
+	  return (
+		<Suspense fallback={<div>Loading...</div>}>
+		  <Dashboard />
+		</Suspense>
+	  );
+	}
+	
+	🔍 What happens?
+	Dashboard is not loaded initially
+	Loaded only when rendered
+	React creates a separate chunk
+
+🔹 Live Example 2: Route-Based Code Splitting (React Router)
+	import { BrowserRouter, Routes, Route } from "react-router-dom";
+	import { lazy, Suspense } from "react";
+
+	const Home = lazy(() => import("./Home"));
+	const About = lazy(() => import("./About"));
+
+	function App() {
+	  return (
+		<BrowserRouter>
+		  <Suspense fallback={<h2>Loading page...</h2>}>
+			<Routes>
+			  <Route path="/" element={<Home />} />
+			  <Route path="/about" element={<About />} />
+			</Routes>
+		  </Suspense>
+		</BrowserRouter>
+	  );
+	}
+	👉 Only visited pages get loaded
+	
+🔹 Live Example 3: Dynamic Import (Manual Splitting)
+	button.addEventListener("click", async () => {
+	  const module = await import("./math.js");
+	  console.log(module.add(2, 3));
+	});
+	👉 math.js loads only when button is clicked
+	
+✅ Benefits of Code Splitting
+	✅ Faster initial load
+	✅ Better performance
+	✅ Reduced bundle size
+	✅ Improved user experience
+	✅ Efficient caching
+
+🔹 React 18 Optimization with Suspense
+	<Suspense fallback={<Spinner />}>
+	  <HeavyComponent />
+	</Suspense>
+	👉 Shows loader until chunk loads
+	
+	🔥 Real-Life Scenario
+	Imagine:
+	✅ E-commerce app
+	Home page → small bundle
+	Product page → loaded later
+	Admin → separate chunk
+	👉 User doesn't download admin code unnecessarily\
+	
+✅ Code Splitting vs Lazy Loading
+	Concept					Meaning
+	Code Splitting			Breaking bundle
+	Lazy Loading			Loading chunks on demand
+	👉 They work together ✅
+	
+🚀 Senior-Level Talking Points
+	Mention these in interviews:
+	React.lazy + Suspense
+	Dynamic import()
+	Route-based splitting
+	Webpack chunking
+	Prefetching and caching
+	Impact on Core Web Vitals (LCP, TTI)
+--------------------------------------------------------
+👉 Explain lazy loading.
+--------------------------------------------------------
+👉 What is tree shaking?
+--------------------------------------------------------
+👉 Explain CORS in simple terms.
+--------------------------------------------------------
+👉 What causes UI jank?
+--------------------------------------------------------
+👉 What are stale closures in React?
+--------------------------------------------------------
+👉 Explain optimistic UI updates.
+--------------------------------------------------------
+👉 Difference between CSR and SSR?
+--------------------------------------------------------
+👉 Explain prototypal inheritance.
+--------------------------------------------------------
+👉 Difference between shallow copy and deep copy?
+--------------------------------------------------------
+👉 What causes memory leaks in React apps?
+--------------------------------------------------------
+👉 Explain repaint vs reflow vs compositing.
+--------------------------------------------------------
+👉 How does React batching improve rendering?
+--------------------------------------------------------
+👉 Explain debounce and throttle with examples.
+--------------------------------------------------------
+👉 How does browser rendering work internally?
+--------------------------------------------------------
+How do you optimize bundle size in React?
+--------------------------------------------------------
+How do you avoid unnecessary re-renders?
+--------------------------------------------------------
+Explain controlled vs uncontrolled components.
+--------------------------------------------------------
+Difference between localStorage and session Storage?
+--------------------------------------------------------
+Explain authentication vs authorization.
+--------------------------------------------------------
+How do refresh tokens work internally?
+--------------------------------------------------------
+How do you securely store tokens in frontend apps?
+--------------------------------------------------------
+Explain race conditions in frontend applications.
+--------------------------------------------------------
+How do you cancel ongoing API requests in React?
+--------------------------------------------------------
+Explain hydration mismatch and why it happens.
+--------------------------------------------------------
+How does React reconciliation work internally?
+--------------------------------------------------------
+Explain browser caching strategies with examples.
+--------------------------------------------------------
+How do you debug frontend performance bottlenecks?
+--------------------------------------------------------
+How would you optimize a slow-loading React app?
+--------------------------------------------------------
+Explain the JavaScript event loop step by step.
+--------------------------------------------------------
+Difference between synchronous and asynchronous JavaScript?
+--------------------------------------------------------
+How do you handle API retries and failures gracefully?
+--------------------------------------------------------
+Explain JWT authentication end-to-end with refresh flow.
+--------------------------------------------------------
+How do service workers improve frontend applications?
+--------------------------------------------------------
+How would you design state management for large applications?
+--------------------------------------------------------
+Explain accessibility best practices in frontend development.
+--------------------------------------------------------
+Difference between SSR, CSR, SSG, ISR, and hydration?
+--------------------------------------------------------
+How do you implement infinite scrolling efficiently?
+--------------------------------------------------------
+What happens internally when a user types a URL in the browser?
+--------------------------------------------------------
+Explain frontend security vulnerabilities developers should know.
+--------------------------------------------------------
+How do you monitor frontend applications in production?
+--------------------------------------------------------
+How would you optimize an eCommerce product listing page?
+--------------------------------------------------------
+Tell me about a difficult production bug you solved recently.
+--------------------------------------------------------
+How would you architect a scalable frontend application?
+--------------------------------------------------------
