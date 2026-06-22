@@ -1,0 +1,622 @@
+Core Concepts and Architecture
+
+1. What are the key architectural differences between AngularJS and Angular (17+)?
+
+Angular (17+) represents a complete rewrite from AngularJS, introducing several fundamental changes:
+- Shift from MVC to component-based architecture
+- TypeScript instead of JavaScript
+- Improved performance through hierarchical Dependency Injection
+- More structured and modular approach
+- Enhanced mobile support with better performance
+- Introduction of CLI for project scaffolding
+
+2. Explain Angular's component lifecycle hooks.
+Components go through several lifecycle phases:
+- ngOnChanges: When data-bound properties change
+- ngOnInit: After first ngOnChanges
+- ngDoCheck: Developer's custom change detection
+- ngAfterContentInit: After content projection
+- ngAfterContentChecked: After content check
+- ngAfterViewInit: After view initialization
+- ngAfterViewChecked: After view check
+- ngOnDestroy: Just before component destruction
+
+3. What is Change Detection in Angular and how does it work?
+Change Detection is Angular's process of synchronizing the model with the view. It uses Zone.js to:
+- Track async operations
+- Determine when to update the view
+- Implement unidirectional data flow
+- Support OnPush strategy for better performance
+
+4. How do you optimize Change Detection in a large Angular application?
+Several strategies can be employed:
+- Use OnPush Change Detection Strategy
+- Implement trackBy function for ngFor
+- Use pure pipes instead of methods in templates
+- Detach change detector for static components
+- Use async pipe for observables
+- Implement running change detection outside NgZone
+
+5. Explain Dependency Injection in Angular.
+DI is a design pattern where:
+- Components declare dependencies in constructor
+- Angular's injector maintains singleton instances
+- Providers can be configured at different levels
+- Hierarchical injection system
+- Supports lazy loading and tree-shaking
+
+6. What are Angular Modules and what are their key characteristics?
+
+Angular Modules are containers for:
+- Components, directives, and pipes
+- Services and other dependencies
+- Routing configuration
+- Feature organization
+They support:
+- Lazy loading
+- Encapsulation
+- Separation of concerns
+
+Q. Custom directory example:
+import { Directive, ElementRef, Renderer2, HostListener } from '@angular/core';
+
+@Directive({
+  selector: '[appHighlight]'
+})
+export class HighlightDirective {
+  constructor(private el: ElementRef, private renderer: Renderer2) {}
+
+  @HostListener('mouseenter') onMouseEnter() {
+    this.renderer.setStyle(this.el.nativeElement, 'backgroundColor', 'yellow');
+  }
+
+  @HostListener('mouseleave') onMouseLeave() {
+    this.renderer.setStyle(this.el.nativeElement, 'backgroundColor', 'transparent');
+  }
+}
+**Usage:**
+```html
+<p appHighlight>Hover over me!</p>
+
+7. How do you implement lazy loading in Angular?
+Lazy loading implementation involves:
+// In app-routing.module.ts
+const routes: Routes = [
+  {
+    path: 'feature',
+    loadChildren: () => import('./feature/feature.module')
+      .then(m => m.FeatureModule)
+  }
+];        
+Key considerations:
+- Proper module structure
+- Route configuration
+- PreloadAllModules strategy if needed
+- Proper chunk naming
+
+8. Explain Angular's HTTP interceptors and their uses.
+Interceptors are middleware for HTTP requests:
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const authReq = req.clone({
+      headers: req.headers.set('Authorization', 'Bearer ' + this.token)
+    });
+    return next.handle(authReq);
+  }
+}
+        
+Common uses:
+- Authentication
+- Error handling
+- Loading indicators
+- Request/Response transformation
+
+9. How do you handle state management in Angular applications?
+Several approaches:
+- Services with BehaviorSubject
+- NgRx for complex applications
+- Akita
+- NGXS
+- Simple services for small applications
+
+Example with BehaviorSubject:
+
+@Injectable({
+  providedIn: 'root'
+})
+
+export class StateService {
+  private state = new BehaviorSubject<any>(initialState);
+  state$ = this.state.asObservable();
+  updateState(newState: any) {
+    this.state.next(newState);
+  }
+}    
+    
+10. What are Angular Guards and how do you implement them?
+Guards protect routes based on conditions:
+
+@Injectable({
+  providedIn: 'root'
+})
+
+export class AuthGuard implements CanActivate {
+
+  canActivate(
+
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    return this.authService.isAuthenticated();
+  }
+}      
+  
+Types include:
+- CanActivate
+- CanActivateChild
+- CanDeactivate
+- CanLoad
+- Resolve
+
+Advanced Concepts
+
+11. How do you handle forms in Angular? Compare Template-driven vs Reactive forms.
+Template-driven forms:
+- Simpler, more declarative
+- Good for basic forms
+- Two-way binding with [(ngModel)]
+
+Reactive forms:
+- More robust
+- Better for complex validation
+- Better unit testing
+- Programmatic form creation
+
+Example of Reactive Form:
+
+this.form = this.fb.group({
+  name: ['', [Validators.required, Validators.minLength(3)]],
+  email: ['', [Validators.required, Validators.email]],
+  address: this.fb.group({
+    street: [''],
+    city: ['']
+  })
+});        
+
+12. Explain Angular's performance optimization techniques.
+Key techniques include:
+- OnPush Change Detection
+- Pure Pipes
+- trackBy for *ngFor
+- Lazy Loading
+- Preloading strategies
+- AOT compilation
+- Tree shaking
+- Service Worker implementation
+
+13. How do you implement error handling in Angular applications?
+Comprehensive error handling includes:
+- Global error handler
+- HTTP interceptor for API errors
+- RxJS error operators
+- Try-catch blocks
+- Error boundaries
+
+Example:
+
+@Injectable()
+
+export class GlobalErrorHandler implements ErrorHandler {
+  handleError(error: Error) {
+    console.error('An error occurred:', error);
+    // Log to server
+    // Show user-friendly message
+  }
+}        
+14. How do you implement authentication in Angular?
+
+Authentication implementation involves:
+- JWT token management
+- Route guards
+- HTTP interceptors
+- Session management
+- Secure storage
+
+15. Explain Angular's testing framework and approaches.
+
+Testing involves:
+- Unit tests with Jasmine
+- Integration tests
+- E2E tests with Protractor/Cypress
+- TestBed configuration
+- Component testing
+- Service testing
+- Mock services
+
+Example:
+
+describe('MyComponent', () => {
+
+  let component: MyComponent;
+  let fixture: ComponentFixture<MyComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ MyComponent ],
+      providers: [ MyService ]
+    }).compileComponents();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});        
+
+Covering topics like:
+Angular Interview Topics
+- RxJS and Observables
+- Angular Material
+- Custom Directives
+- Content Projection
+- ViewChild and ViewChildren
+- HostListener and HostBinding
+- Dynamic Components
+- Renderer2 vs ElementRef
+- Angular Elements
+- SSR with Angular Universal
+- PWA implementation
+- Micro-frontends
+- Angular Architecture patterns
+- Performance optimization
+- Security best practices
+- State management patterns
+- Advanced routing
+- Form validation strategies
+- HTTP client features
+- Dependency injection scenarios
+- Component communication patterns
+- Change detection strategies
+- Angular CLI features
+- Build optimization
+- Testing strategies
+- Error handling patterns
+- Authentication implementations
+- Authorization scenarios
+- Custom pipes
+- Directives advanced usage
+- Component lifecycle scenarios
+- Module organization
+- Lazy loading implementations
+- Route guards scenarios
+- HTTP interceptors use cases
+- Observable patterns
+- Angular security
+- Performance monitoring
+- Build and deployment
+- Version migration
+- Best practices
+- Common pitfalls
+- Debugging techniques
+- Tool integration
+- CI/CD implementation
+
+Folder Structure:
+
+src/
+│
+├── app/
+│   │
+│   ├── core/
+│   ├── shared/
+│   ├── features/
+│   ├── layouts/
+│   ├── store/
+│   ├── app.routes.ts
+│   ├── app.config.ts
+│   └── app.component.ts
+│
+├── assets/
+├── environments/
+├── styles/
+└── main.ts
+
+
+1. Core Module
+Contains singleton services and application-wide resources.
+
+core/
+│
+├── services/
+├── guards/
+├── interceptors/
+├── models/
+├── constants/
+├── enums/
+├── tokens/
+├── resolvers/
+├── configs/
+└── facades/
+
+core/services/
+│
+├── auth.service.ts
+├── user.service.ts
+├── storage.service.ts
+├── notification.service.ts
+├── loader.service.ts
+└── api.service.ts
+
+core/guards/
+│
+├── auth.guard.ts
+├── role.guard.ts
+├── login.guard.ts
+└── unsaved-changes.guard.ts
+
+core/interceptors/
+│
+├── auth.interceptor.ts
+├── error.interceptor.ts
+├── loader.interceptor.ts
+├── logging.interceptor.ts
+└── cache.interceptor.ts
+
+core/models/
+│
+├── auth.model.ts
+├── user.model.ts
+├── chat.model.ts
+└── api-response.model.ts
+
+core/constants/
+│
+├── api.constants.ts
+├── app.constants.ts
+└── message.constants.ts
+
+core/enums/
+│
+├── user-role.enum.ts
+├── status.enum.ts
+└── permission.enum.ts
+
+2. Shared Module
+Reusable items used across multiple features.
+shared/
+│
+├── components/
+├── directives/
+├── pipes/
+├── dialogs/
+├── validators/
+├── interfaces/
+├── utils/
+└── types/
+
+shared/components/
+│
+├── button/
+├── loader/
+├── search-box/
+├── data-table/
+├── avatar/
+├── pagination/
+└── empty-state/
+
+shared/components/button/
+│
+├── button.component.ts
+├── button.component.html
+├── button.component.scss
+└── index.ts
+
+shared/dialogs/
+│
+├── confirm-dialog/
+├── delete-dialog/
+├── image-preview-dialog/
+└── success-dialog/
+
+shared/directives/
+│
+├── autofocus.directive.ts
+├── debounce-click.directive.ts
+├── permission.directive.ts
+└── tooltip.directive.ts
+
+shared/pipes/
+│
+├── date-format.pipe.ts
+├── initials.pipe.ts
+├── truncate.pipe.ts
+└── currency-format.pipe.ts
+
+shared/validators/
+│
+├── password.validator.ts
+├── email.validator.ts
+└── file-size.validator.ts
+
+shared/utils/
+│
+├── date.util.ts
+├── string.util.ts
+├── storage.util.ts
+├── file.util.ts
+└── form.util.ts
+
+3. Features Folder
+Business modules live here.
+features/
+│
+├── auth/
+├── dashboard/
+├── users/
+├── chat/
+├── settings/
+└── reports/
+└── reports/Show more lines
+Each feature should be self-contained.
+Example User Feature
+users/
+│
+├── pages/
+├── components/
+├── services/
+├── models/
+├── store/
+├── routes/
+└── users.routes.ts
+
+
+Pages
+Route-level components.
+users/pages/
+│
+├── user-list/
+├── user-details/
+├── add-user/
+└── edit-user/
+
+Components
+Feature-specific reusable components.
+users/components/
+│
+├── user-card/
+├── user-filter/
+└── user-table/
+
+users/services/
+│
+└── users.service.ts
+
+4. Layouts
+Application layouts
+layouts/
+│
+├── main-layout/
+├── auth-layout/
+└── admin-layout/
+
+Main Layout Example:
+
+------------------
+Header
+------------------
+Sidebar
+------------------
+Router Outlet
+------------------
+Footer
+------------------
+
+5. State Management
+Even if you don't use NgRx today, keep a placeholder.
+store/
+│
+├── auth/
+├── user/
+├── app/
+└── chat/
+
+store/auth/
+│
+├── auth.actions.ts
+├── auth.reducer.ts
+├── auth.effects.ts
+├── auth.selectors.ts
+└── auth.state.ts
+
+6. Assets
+assets/
+│
+├── images/
+├── icons/
+├── fonts/
+├── lottie/
+└── mock-data/
+
+7. Styles
+Never keep everything in styles.scss.
+styles/
+│
+├── abstracts/
+├── base/
+├── themes/
+├── utilities/
+├── material/
+└── styles.scss
+example: 
+styles/
+│
+├── abstracts/
+│   ├── _variables.scss
+│   ├── _mixins.scss
+│   └── _functions.scss
+│
+├── utilities/
+│   ├── _spacing.scss
+│   ├── _display.scss
+│   └── _colors.scss
+│
+├── themes/
+│   ├── light-theme.scss
+│   └── dark-theme.scss
+
+API Layer Structure (Recommended)
+Avoid direct HttpClient everywhere.
+core/
+└── services/
+    ├── api.service.ts
+    └── auth.service.ts
+	
+@Injectable({
+  providedIn: 'root'
+})
+export class ApiService {
+
+  constructor(private http: HttpClient) {}
+
+  get<T>(url: string) {
+    return this.http.get<T>(url);
+  }
+
+  post<T>(url: string, payload: unknown) {
+    return this.http.post<T>(url, payload);
+  }
+}
+
+
+Environment Structure
+environments/
+│
+├── environment.ts
+├── environment.dev.ts
+├── environment.qa.ts
+├── environment.uat.ts
+└── environment.prod.ts
+
+Barrel Files
+Use index files.
+shared/components/index.ts
+core/services/index.ts
+example:
+export * from './auth.service';
+export * from './loader.service';
+
+Naming Standards
+Components
+user-list.component.ts
+user-card.component.ts
+Services
+user.service.ts
+chat.service.ts
+Guards
+auth.guard.ts
+role.guard.ts
+Interceptors
+auth.interceptor.ts
+loader.interceptor.ts
