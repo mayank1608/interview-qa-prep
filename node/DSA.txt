@@ -1,0 +1,389 @@
+// 1. Reverse a String
+function reverseString(str) {
+    return str.split('').reverse().join('');
+}
+
+console.log(reverseString("hello"));
+
+// 2. Check Palindrome
+function isPalindrome(str) {
+    return str === str.split('').reverse().join('');
+}
+
+console.log(isPalindrome("madam"));
+
+// 3. Find Duplicate Elements
+const arr = [1,2,3,4,2,5,3];
+
+const duplicates = arr.filter(
+    (item,index) => arr.indexOf(item)!==index
+);
+
+console.log([...new Set(duplicates)]);
+
+//4. Count Character Frequency
+function charCount(str){
+    const count = {};
+
+    for(let char of str){
+        count[char] = (count[char] || 0) + 1;
+    }
+
+    return count;
+}
+
+console.log(charCount("hello"));
+
+//5. Find Largest Number in Array
+const arr = [10,20,50,15];
+
+const max = Math.max(...arr);
+
+console.log(max);
+
+//6. Remove Duplicates
+const arr = [1,2,2,3,4,4];
+
+const unique = [...new Set(arr)];
+
+console.log(unique);
+
+//7. Sort Array of Objects
+const users = [
+ {name:'John', age:30},
+ {name:'David', age:20},
+ {name:'Sam', age:25}
+];
+
+users.sort((a,b)=>a.age-b.age);
+
+console.log(users);
+
+//8. Flatten Nested Array
+const arr = [1,[2,[3,4],5]];
+
+console.log(arr.flat(Infinity));
+
+//9. Find Missing Number
+const arr = [1,2,3,5];
+
+function missingNumber(arr){
+    const n = arr.length + 1;
+    const expected = (n * (n + 1))/2;
+    const actual = arr.reduce((a,b)=>a+b,0);
+
+    return expected - actual;
+}
+
+console.log(missingNumber(arr));
+
+//11. Throttle Function
+function throttle(func, limit){
+    let flag = true;
+
+    return function(...args){
+        if(flag){
+            func.apply(this,args);
+            flag = false;
+
+            setTimeout(()=>{
+                flag = true;
+            },limit);
+        }
+    }
+}
+
+//12. Implement Promise
+const promise = new Promise((resolve,reject)=>{
+    const success = true;
+
+    if(success)
+        resolve("Success");
+    else
+        reject("Failed");
+});
+
+promise
+.then(res=>console.log(res))
+.catch(err=>console.log(err));
+
+//13. Promise.all Example
+const p1 = Promise.resolve("API1");
+const p2 = Promise.resolve("API2");
+
+Promise.all([p1,p2])
+.then(result => console.log(result));
+
+//14. Sequential API Calls
+async function fetchData(){
+
+    const user = await getUser();
+
+    const orders = await getOrders(user.id);
+
+    return orders;
+}
+
+//15. Parallel API Calls
+async function getData(){
+
+    const [users,orders] =
+        await Promise.all([
+            fetchUsers(),
+            fetchOrders()
+        ]);
+
+    console.log(users,orders);
+}
+
+//16. Event Loop Interview Question
+console.log("1");
+
+setTimeout(()=>{
+    console.log("2");
+},0);
+
+Promise.resolve()
+.then(()=>{
+    console.log("3");
+});
+
+console.log("4"); // output: 1 4 3 2 
+Reason:
+Synchronous code
+Microtask Queue
+Callback Queue
+
+//17. Read File using Async/Await
+const fs = require("fs").promises;
+
+async function readFile(){
+    const data =
+      await fs.readFile("test.txt","utf8");
+
+    console.log(data);
+}
+
+//18. Create Custom Middleware
+const logger = (req,res,next)=>{
+    console.log(req.method, req.url);
+    next();
+};
+
+app.use(logger);
+
+//19. JWT Authentication Middleware
+const jwt = require("jsonwebtoken");
+
+function authenticate(req,res,next){
+
+    const token =
+        req.headers.authorization?.split(" ")[1];
+
+    if(!token){
+        return res.status(401).json({
+            message:"Unauthorized"
+        });
+    }
+
+    try{
+        req.user = jwt.verify(token,"secret");
+        next();
+    }
+    catch(err){
+        res.status(401).json({
+            message:"Invalid Token"
+        });
+    }
+}
+
+//20. Rate Limiting Middleware
+const rateLimit =
+require("express-rate-limit");
+
+app.use(rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100
+}));
+
+//21. LRU Cache Implementation
+class LRUCache {
+    constructor(limit){
+        this.limit = limit;
+        this.cache = new Map();
+    }
+
+    get(key){
+        if(!this.cache.has(key))
+            return -1;
+
+        const value = this.cache.get(key);
+
+        this.cache.delete(key);
+        this.cache.set(key,value);
+
+        return value;
+    }
+
+    put(key,value){
+        if(this.cache.has(key))
+            this.cache.delete(key);
+
+        this.cache.set(key,value);
+
+        if(this.cache.size > this.limit){
+            const firstKey =
+                this.cache.keys().next().value;
+
+            this.cache.delete(firstKey);
+        }
+    }
+}
+
+//22. Worker Threads Example
+const {
+ Worker
+} = require('worker_threads');
+
+new Worker('./worker.js'); 
+
+Use Case:
+CPU intensive operations
+Image processing
+Report generation
+
+//23. Create REST API
+app.get('/users',(req,res)=>{
+    res.json(users);
+});
+
+app.post('/users',(req,res)=>{
+    users.push(req.body);
+    res.status(201).json(req.body);
+});
+
+//24. Stream Large File
+const fs = require('fs');
+
+const stream =
+    fs.createReadStream('largefile.txt');
+
+stream.on('data',(chunk)=>{
+    console.log(chunk.toString());
+});
+
+//25. Custom EventEmitter
+const EventEmitter = require('events');
+
+const emitter = new EventEmitter();
+
+emitter.on('welcome',()=>{
+    console.log('Welcome User');
+});
+
+emitter.emit('welcome');
+
+//26. Find Second Largest Number
+const arr = [10,50,20,100,60];
+
+const secondLargest =
+   [...new Set(arr)]
+   .sort((a,b)=>b-a)[1];
+
+console.log(secondLargest);
+
+//27. Group By Property
+const users = [
+ {name:"John", city:"Mumbai"},
+ {name:"Sam", city:"Delhi"},
+ {name:"David", city:"Mumbai"}
+];
+
+const grouped =
+Object.groupBy(users,
+ user => user.city
+);
+
+console.log(grouped);
+
+//28. Deep Clone Object
+const obj = {
+  name:'John',
+  address:{
+      city:'Mumbai'
+  }
+};
+
+const clone =
+structuredClone(obj);
+
+console.log(clone);
+
+//29. Retry Failed API Calls
+async function retry(fn,retries=3){
+
+    try{
+        return await fn();
+    }
+    catch(err){
+
+        if(retries===0)
+            throw err;
+
+        return retry(fn,retries-1);
+    }
+}
+
+//30. Producer Consumer Queue
+const queue = [];
+
+function producer(data){
+    queue.push(data);
+}
+
+function consumer(){
+    return queue.shift();
+}
+
+/*
+//Senior Node.js Interview Questions (Must Prepare)
+ 
+Explain Event Loop in detail.
+Difference between process.nextTick(), setImmediate(), setTimeout().
+Worker Threads vs Child Process.
+Cluster Module.
+Streams and Buffers.
+Memory Leaks in Node.js.
+Horizontal vs Vertical Scaling.
+Redis Caching Strategy.
+JWT vs Session Authentication.
+OAuth2 Flow.
+API Rate Limiting.
+WebSockets vs SSE.
+Circuit Breaker Pattern.
+Message Queues (Kafka/RabbitMQ).
+Node.js Design Patterns.
+Microservices Architecture.
+Event-Driven Architecture.
+Database Connection Pooling.
+GraphQL vs REST.
+Security Best Practices (OWASP).
+
+For your 13 years of experience, I'd recommend focusing heavily on:
+
+Event Loop
+Streams
+Worker Threads
+Clustering
+Redis
+Kafka
+JWT/OAuth
+Microservices
+System Design
+Performance Optimization
+Scalability Questions
+Real-world Node.js API Design
+
+These are the topics most commonly asked for Tech Lead / Senior Full Stack Developer interviews.
+*/
+

@@ -1,0 +1,38 @@
+// Question: Node.js is single-threaded. Suppose you have an endpoint that needs to calculate a highly intensive mathematical operation (like a massive Fibonacci sequence) without locking up the entire server for other concurrent users. Code a solution using Worker Threads.
+
+// main.js
+const { Worker } = require('worker_threads');
+const express = require('express');
+const app = express();
+
+app.get('/heavy-task', (req, res) => {
+    // Spin up a worker thread to handle the computation
+    const worker = new Worker('./worker.js', { workerData: { iterations: 40 } });
+
+    worker.on('message', (result) => {
+        res.status(200).json({ success: true, data: result });
+    });
+
+    worker.on('error', (err) => {
+        res.status(500).json({ error: err.message });
+    });
+});
+
+app.listen(3000, () => console.log('Server running on port 3000'));
+
+// worker.js
+const { parentPort, workerData } = require('worker_threads');
+
+function calculateFibonacci(n) {
+    if (n <= 1) return n;
+    return calculateFibonacci(n - 1) + calculateFibonacci(n - 2);
+}
+
+const result = calculateFibonacci(workerData.iterations);
+parentPort.postMessage(result);
+
+
+//View Answer & Explanation
+Why Clustering is Not Always the Right Choice HereAn interviewer might ask: "Why not use the cluster module instead?"Clustering spawns entirely separate operating system processes running the same app instance to distribute incoming traffic across multiple network ports.
+
+Worker Threads run inside the same process, sharing the memory space, and are specifically designed to offload heavy CPU computation without blocking the main V8 event loop. Spawning a brand-new OS process via cluster just to compute a calculation is far too resource-heavy.

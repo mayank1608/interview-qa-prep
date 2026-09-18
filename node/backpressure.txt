@@ -1,0 +1,24 @@
+const fs = require('fs');
+const { Transform, pipeline } = require('stream');
+
+// Implement a basic pipeline that safely reads, transforms to uppercase, and writes.
+function processLargeFile(source, destination) {
+    const readStream = fs.createReadStream(source);
+    const writeStream = fs.createWriteStream(destination);
+
+    const uppercaseTransform = new Transform({
+        transform(chunk, encoding, callback) {
+            this.push(chunk.toString().toUpperCase());
+            callback();
+        }
+    });
+
+    // Provide the clean pipeline execution
+    pipeline(readStream, uppercaseTransform, writeStream, (err) => {
+        if (err) {
+            console.error('Pipeline failed:', err);
+        } else {
+            console.log('Pipeline succeeded.');
+        }
+    });
+}
