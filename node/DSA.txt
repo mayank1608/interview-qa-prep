@@ -1,18 +1,60 @@
-// 1. Reverse a String
+/*******************************************
+			1. Reverse a String
+*******************************************/
 function reverseString(str) {
     return str.split('').reverse().join('');
 }
 
 console.log(reverseString("hello"));
 
-// 2. Check Palindrome
+// without built-in function
+function reverseString(value) {
+    let reversed = "";
+
+    for (const character of value) {
+        reversed = character + reversed;
+    }
+
+    return reversed;
+}
+
+console.log(reverseString("hello")); // olleh
+
+// Does JavaScript string indexing handle every Unicode character correctly?
+// Not always. Some emojis and complex Unicode characters use multiple code units.
+// A better option is:
+function reverseUnicodeString(value) {
+    return Array.from(value).reverse().join("");
+}
+
+console.log(reverseUnicodeString("Hi 😊"));
+
+/*******************************************
+			2. Check Palindrome
+*******************************************/
 function isPalindrome(str) {
     return str === str.split('').reverse().join('');
 }
 
 console.log(isPalindrome("madam"));
 
-// 3. Find Duplicate Elements
+// without built-in function
+function isPalindrome(value) {
+    const normalized = value
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+    return normalized === normalized.split("").reverse().join("");
+}
+
+console.log(isPalindrome("Madam")); // true
+console.log(isPalindrome("A man, a plan, a canal: Panama")); // true
+console.log(isPalindrome("Node.js")); // false
+
+/*******************************************
+			3. Find Duplicate Elements
+*******************************************/
+
 const arr = [1,2,3,4,2,5,3];
 
 const duplicates = arr.filter(
@@ -21,7 +63,49 @@ const duplicates = arr.filter(
 
 console.log([...new Set(duplicates)]);
 
-//4. Count Character Frequency
+// another approach
+function findDuplicates(values) {
+    const seen = new Set();
+    const duplicates = new Set();
+
+    for (const value of values) {
+        if (seen.has(value)) {
+            duplicates.add(value);
+        } else {
+            seen.add(value);
+        }
+    }
+
+    return [...duplicates];
+}
+
+// duplicates in array of Objects
+const users = [
+    { id: 1, name: "Mayank" },
+    { id: 2, name: "John" },
+    { id: 1, name: "Mayank Updated" }
+];
+
+function findDuplicateIds(users) {
+    const seenIds = new Set();
+    const duplicateIds = new Set();
+
+    for (const user of users) {
+        if (seenIds.has(user.id)) {
+            duplicateIds.add(user.id);
+        }
+
+        seenIds.add(user.id);
+    }
+
+    return [...duplicateIds];
+}
+
+console.log(findDuplicateIds(users)); // [1]
+
+/*******************************************
+			4. Count Character Frequency
+*******************************************/
 function charCount(str){
     const count = {};
 
@@ -34,21 +118,74 @@ function charCount(str){
 
 console.log(charCount("hello"));
 
-//5. Find Largest Number in Array
+// Ignore spaces and uppercase differences
+function countCharacters(value) {
+    const normalized = value
+        .toLowerCase()
+        .replace(/\s/g, "");
+
+    return [...normalized].reduce((frequency, character) => {
+        frequency[character] = (frequency[character] || 0) + 1;
+        return frequency;
+    }, {});
+}
+
+/*******************************************
+		5. Find Largest Number in Array
+*******************************************/
 const arr = [10,20,50,15];
 
 const max = Math.max(...arr);
 
 console.log(max);
+// Custom method
+function findLargest(numbers) {
+    if (numbers.length === 0) {
+        throw new Error("Array cannot be empty");
+    }
 
-//6. Remove Duplicates
+    let largest = numbers[0];
+
+    for (let index = 1; index < numbers.length; index++) {
+        if (numbers[index] > largest) {
+            largest = numbers[index];
+        }
+    }
+
+    return largest;
+}
+
+console.log(findLargest([-10, -3, -25])); // -3
+
+/*******************************************
+		6. Remove Duplicates
+*******************************************/
 const arr = [1,2,2,3,4,4];
 
 const unique = [...new Set(arr)];
 
 console.log(unique);
 
-//7. Sort Array of Objects
+// Objects based on id
+function removeDuplicateUsers(users) {
+    return [
+        ...new Map(
+            users.map(user => [user.id, user])
+        ).values()
+    ];
+}
+
+const users = [
+    { id: 1, name: "Mayank" },
+    { id: 2, name: "John" },
+    { id: 1, name: "Mayank Updated" }
+];
+
+console.log(removeDuplicateUsers(users));
+
+/*******************************************
+		7. Sort Array of Objects
+*******************************************/
 const users = [
  {name:'John', age:30},
  {name:'David', age:20},
@@ -57,14 +194,77 @@ const users = [
 
 users.sort((a,b)=>a.age-b.age);
 
-console.log(users);
+const sortedUsers = [...users].sort(
+(first, second) => first.age - second.age
+);
 
-//8. Flatten Nested Array
+const sortedDescending = [...users].sort(
+(first, second) => second.age - first.age
+);
+
+const sortedByName = [...users].sort((first, second) =>
+    first.name.localeCompare(second.name)
+);
+
+console.log(users);
+console.log(sortedUsers);
+console.log(sortedByName);
+console.log(sortedDescending);
+
+// Multiple-field sorting
+const employees = [
+    { department: "IT", name: "Sam" },
+    { department: "HR", name: "John" },
+    { department: "IT", name: "David" }
+];
+
+employees.sort((first, second) => {
+    const departmentComparison =
+        first.department.localeCompare(second.department);
+
+    if (departmentComparison !== 0) {
+        return departmentComparison;
+    }
+
+    return first.name.localeCompare(second.name);
+});
+
+/*******************************************
+		8. Flatten Nested Array
+*******************************************/
 const arr = [1,[2,[3,4],5]];
 
 console.log(arr.flat(Infinity));
 
-//9. Find Missing Number
+// Recursive implementation
+function flattenArray(values) {
+    const result = [];
+
+    for (const value of values) {
+        if (Array.isArray(value)) {
+            result.push(...flattenArray(value));
+        } else {
+            result.push(value);
+        }
+    }
+
+    return result;
+}
+
+console.log(flattenArray([1, [2, [3, 4]], 5]));
+
+// using reduce
+function flattenArray(values) {
+    return values.reduce((result, value) => {
+        return result.concat(
+            Array.isArray(value) ? flattenArray(value) : value
+        );
+    }, []);
+}
+
+/*******************************************
+		9. Find Missing Number
+*******************************************/
 const arr = [1,2,3,5];
 
 function missingNumber(arr){
@@ -77,7 +277,45 @@ function missingNumber(arr){
 
 console.log(missingNumber(arr));
 
-//11. Throttle Function
+/*******************************************
+		10. Implement Debounce
+*******************************************/
+function debounce(callback, delay) {
+    let timeoutId;
+
+    return function (...args) {
+        const context = this;
+
+        clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(() => {
+            callback.apply(context, args);
+        }, delay);
+    };
+}
+// Production version with cancel
+function debounce(callback, delay) {
+    let timeoutId;
+
+    function debounced(...args) {
+        clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(() => {
+            callback.apply(this, args);
+        }, delay);
+    }
+
+    debounced.cancel = function () {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+    };
+
+    return debounced;
+}
+
+/*******************************************
+		11. Throttle Function
+*******************************************/
 function throttle(func, limit){
     let flag = true;
 
@@ -93,7 +331,25 @@ function throttle(func, limit){
     }
 }
 
-//12. Implement Promise
+// Example
+const logProgress = throttle(progress => {
+    console.log(`Progress: ${progress}%`);
+}, 1000);
+
+setInterval(() => {
+    logProgress(Math.floor(Math.random() * 100));
+}, 100);
+
+/* usecases:  
+Limiting progress updates
+WebSocket message processing
+Monitoring events
+Preventing excessive logging
+Controlling downstream service traffic */
+
+/*******************************************
+		12. Implement Promise
+*******************************************/
 const promise = new Promise((resolve,reject)=>{
     const success = true;
 
@@ -107,13 +363,18 @@ promise
 .then(res=>console.log(res))
 .catch(err=>console.log(err));
 
-//13. Promise.all Example
+/*******************************************
+		13. Promise.all Example
+*******************************************/
 const p1 = Promise.resolve("API1");
 const p2 = Promise.resolve("API2");
 
 Promise.all([p1,p2])
 .then(result => console.log(result));
 
+/*******************************************
+		13. Promise.all Example
+*******************************************/
 //14. Sequential API Calls
 async function fetchData(){
 
@@ -124,6 +385,9 @@ async function fetchData(){
     return orders;
 }
 
+/*******************************************
+		13. Promise.all Example
+*******************************************/
 //15. Parallel API Calls
 async function getData(){
 
@@ -136,6 +400,9 @@ async function getData(){
     console.log(users,orders);
 }
 
+/*******************************************
+		13. Promise.all Example
+*******************************************/
 //16. Event Loop Interview Question
 console.log("1");
 
@@ -154,6 +421,9 @@ Synchronous code
 Microtask Queue
 Callback Queue
 
+/*******************************************
+		13. Promise.all Example
+*******************************************/
 //17. Read File using Async/Await
 const fs = require("fs").promises;
 
@@ -164,6 +434,9 @@ async function readFile(){
     console.log(data);
 }
 
+/*******************************************
+		13. Promise.all Example
+*******************************************/
 //18. Create Custom Middleware
 const logger = (req,res,next)=>{
     console.log(req.method, req.url);
@@ -172,7 +445,10 @@ const logger = (req,res,next)=>{
 
 app.use(logger);
 
-//19. JWT Authentication Middleware
+/*******************************************
+		19. JWT Authentication Middleware
+*******************************************/
+// simple function
 const jwt = require("jsonwebtoken");
 
 function authenticate(req,res,next){
@@ -197,7 +473,66 @@ function authenticate(req,res,next){
     }
 }
 
-//20. Rate Limiting Middleware
+// with hashing and authorization
+const jwt = require("jsonwebtoken");
+
+function authenticate(req, res, next) {
+    const authorization = req.headers.authorization;
+
+    if (!authorization?.startsWith("Bearer ")) {
+        return res.status(401).json({
+            message: "Authentication token is required"
+        });
+    }
+
+    const token = authorization.substring(7);
+    // const token = req.headers.authorization?.split(" ")[1];
+
+    try {
+        const payload = jwt.verify(
+            token,
+            process.env.JWT_ACCESS_SECRET,
+            {
+                algorithms: ["HS256"],
+                issuer: "my-application",
+                audience: "my-api"
+            }
+        );
+
+        req.user = payload;
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            message: "Token is invalid or expired"
+        });
+    }
+}
+// Authorization Middleware
+// Authentication determines who the user is. Authorization determines what the user may do.
+function authorize(...allowedRoles) {
+    return function (req, res, next) {
+        if (!allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({
+                message: "Access forbidden"
+            });
+        }
+
+        next();
+    };
+}
+
+// Usage
+app.delete(
+    "/api/users/:id",
+    authenticate,
+    authorize("admin"),
+    deleteUser
+);
+
+/*******************************************
+		20. Rate Limiting Middleware
+*******************************************/
+//
 const rateLimit =
 require("express-rate-limit");
 
@@ -206,63 +541,282 @@ app.use(rateLimit({
     max: 100
 }));
 
-//21. LRU Cache Implementation
+// Simple in-memory implementation
+const requestStore = new Map();
+
+function rateLimiter({
+    windowMs = 60_000,
+    maxRequests = 10
+} = {}) {
+    return function (req, res, next) {
+        const key = req.ip;
+        const now = Date.now();
+
+        const record = requestStore.get(key);
+
+        if (!record || now >= record.resetAt) {
+            requestStore.set(key, {
+                count: 1,
+                resetAt: now + windowMs
+            });
+
+            return next();
+        }
+
+        if (record.count >= maxRequests) {
+            return res.status(429).json({
+                message: "Too many requests",
+                retryAfterMs: record.resetAt - now
+            });
+        }
+
+        record.count++;
+        next();
+    };
+}
+
+app.use(
+    "/api",
+    rateLimiter({
+        windowMs: 60_000,
+        maxRequests: 100
+    })
+);
+
+/*******************************************
+		21. LRU Cache Implementation
+*******************************************/
+// LRU means Least Recently Used. When capacity is reached, the least recently accessed item is removed.
+
 class LRUCache {
-    constructor(limit){
-        this.limit = limit;
+    constructor(capacity) {
+        if (!Number.isInteger(capacity) || capacity <= 0) {
+            throw new Error(
+                "Capacity must be a positive integer"
+            );
+        }
+
+        this.capacity = capacity;
         this.cache = new Map();
     }
 
-    get(key){
-        if(!this.cache.has(key))
-            return -1;
+    get(key) {
+        if (!this.cache.has(key)) {
+            return undefined;
+        }
 
         const value = this.cache.get(key);
 
         this.cache.delete(key);
-        this.cache.set(key,value);
+        this.cache.set(key, value);
 
         return value;
     }
 
-    put(key,value){
-        if(this.cache.has(key))
+    set(key, value) {
+        if (this.cache.has(key)) {
             this.cache.delete(key);
+        }
 
-        this.cache.set(key,value);
+        this.cache.set(key, value);
 
-        if(this.cache.size > this.limit){
-            const firstKey =
+        if (this.cache.size > this.capacity) {
+            const leastRecentlyUsedKey =
                 this.cache.keys().next().value;
 
-            this.cache.delete(firstKey);
+            this.cache.delete(leastRecentlyUsedKey);
         }
+
+        return this;
+    }
+
+    has(key) {
+        return this.cache.has(key);
+    }
+
+    delete(key) {
+        return this.cache.delete(key);
+    }
+
+    get size() {
+        return this.cache.size;
     }
 }
 
-//22. Worker Threads Example
+// Example
+const cache = new LRUCache(2);
+
+cache.set("A", 1);
+cache.set("B", 2);
+
+cache.get("A");    // A becomes most recently used
+cache.set("C", 3); // B is removed
+
+console.log(cache.get("B")); // undefined
+console.log(cache.get("A")); // 1
+
+/*******************************************
+		22. Worker Threads Example
+*******************************************/
+//Worker threads execute JavaScript in parallel and are useful for CPU-intensive work. They usually do not improve I/O-intensive operations because Node.js asynchronous I/O is already designed for that. Worker threads can also share memory through SharedArrayBuffer.
+
+// main.js
+const path = require("node:path");
+const { Worker } = require("node:worker_threads");
+
+function runWorker(number) {
+    return new Promise((resolve, reject) => {
+        const worker = new Worker(
+            path.join(__dirname, "worker.js"),
+            {
+                workerData: number
+            }
+        );
+
+        worker.once("message", resolve);
+        worker.once("error", reject);
+
+        worker.once("exit", code => {
+            if (code !== 0) {
+                reject(
+                    new Error(
+                        `Worker stopped with exit code ${code}`
+                    )
+                );
+            }
+        });
+    });
+}
+
+async function main() {
+    const result = await runWorker(40);
+    console.log(result);
+}
+
+main();
+
+// worker.js
 const {
- Worker
-} = require('worker_threads');
+    parentPort,
+    workerData
+} = require("node:worker_threads");
 
-new Worker('./worker.js'); 
+function fibonacci(number) {
+    if (number <= 1) {
+        return number;
+    }
 
-Use Case:
+    return fibonacci(number - 1) + fibonacci(number - 2);
+}
+
+const result = fibonacci(workerData);
+
+parentPort.postMessage(result);
+/* Use Case:
 CPU intensive operations
 Image processing
-Report generation
+Report generation */
 
-//23. Create REST API
-app.get('/users',(req,res)=>{
-    res.json(users);
+/*******************************************
+		23. Create REST API
+*******************************************/
+const express = require("express");
+const { randomUUID } = require("node:crypto");
+
+const app = express();
+
+app.use(express.json());
+
+const users = new Map();
+
+app.post("/api/users", (req, res) => {
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+        return res.status(400).json({
+            message: "Name and email are required"
+        });
+    }
+
+    const user = {
+        id: randomUUID(),
+        name,
+        email
+    };
+
+    users.set(user.id, user);
+
+    return res
+        .status(201)
+        .location(`/api/users/${user.id}`)
+        .json(user);
 });
 
-app.post('/users',(req,res)=>{
-    users.push(req.body);
-    res.status(201).json(req.body);
+app.get("/api/users", (req, res) => {
+    return res.json([...users.values()]);
 });
 
-//24. Stream Large File
+app.get("/api/users/:id", (req, res) => {
+    const user = users.get(req.params.id);
+
+    if (!user) {
+        return res.status(404).json({
+            message: "User not found"
+        });
+    }
+
+    return res.json(user);
+});
+
+app.put("/api/users/:id", (req, res) => {
+    if (!users.has(req.params.id)) {
+        return res.status(404).json({
+            message: "User not found"
+        });
+    }
+
+    const user = {
+        id: req.params.id,
+        name: req.body.name,
+        email: req.body.email
+    };
+
+    users.set(user.id, user);
+
+    return res.json(user);
+});
+
+app.delete("/api/users/:id", (req, res) => {
+    if (!users.delete(req.params.id)) {
+        return res.status(404).json({
+            message: "User not found"
+        });
+    }
+
+    return res.status(204).send();
+});
+
+app.listen(3000, () => {
+    console.log("Server running on port 3000");
+});
+
+/* HTTP status codes to explain
+200: Successful request
+201: Resource created
+204: Successful request with no response body
+400: Invalid client input
+401: Authentication required
+403: Authenticated but not permitted
+404: Resource not found
+409: Resource conflict
+422: Semantically invalid input
+429: Too many requests
+500: Unexpected server error */
+
+/*******************************************
+		24. Stream Large File
+*******************************************/
+//
 const fs = require('fs');
 
 const stream =
@@ -272,7 +826,70 @@ stream.on('data',(chunk)=>{
     console.log(chunk.toString());
 });
 
-//25. Custom EventEmitter
+// Streams process data in chunks instead of loading the entire content into memory. Node.js has four fundamental stream types: readable, writable, duplex, and transform.
+
+const fs = require("node:fs");
+const path = require("node:path");
+
+app.get("/download", (req, res, next) => {
+    const filePath = path.join(
+        __dirname,
+        "files",
+        "large-video.mp4"
+    );
+
+    const readStream = fs.createReadStream(filePath);
+
+    res.setHeader(
+        "Content-Type",
+        "application/octet-stream"
+    );
+
+    res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="large-video.mp4"'
+    );
+
+    readStream.on("error", next);
+    readStream.pipe(res);
+});
+
+// Preferred pipeline approach
+// pipeline() forwards stream errors and handles cleanup more safely.
+
+const fs = require("node:fs");
+const { pipeline } = require("node:stream/promises");
+
+app.get("/download", async (req, res, next) => {
+    try {
+        const source = fs.createReadStream(
+            "./files/large-video.mp4"
+        );
+
+        await pipeline(source, res);
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+/* Backpressure
+Backpressure occurs when the readable stream produces data faster than the writable destination can consume it.
+Streams manage this flow so the application does not keep buffering unlimited data in memory.
+Interview follow-up
+For a manual writable stream: */
+if (!writable.write(chunk)) {
+    readable.pause();
+
+    writable.once("drain", () => {
+        readable.resume();
+    });
+}
+
+/*******************************************
+		25. Custom EventEmitter
+*******************************************/
+//
 const EventEmitter = require('events');
 
 const emitter = new EventEmitter();
@@ -283,7 +900,51 @@ emitter.on('welcome',()=>{
 
 emitter.emit('welcome');
 
-//26. Find Second Largest Number
+// Much of Node.js follows an event-driven architecture. EventEmitter.on() registers listeners and emit() triggers them. EventEmitter listeners are called synchronously when the event is emitted.
+const { EventEmitter } = require("node:events");
+
+class OrderService extends EventEmitter {
+    createOrder(order) {
+        console.log(`Creating order ${order.id}`);
+
+        this.emit("orderCreated", order);
+
+        return order;
+    }
+}
+
+const orderService = new OrderService();
+
+orderService.on("orderCreated", order => {
+    console.log(`Sending email for order ${order.id}`);
+});
+
+orderService.on("orderCreated", order => {
+    console.log(`Updating inventory for order ${order.id}`);
+});
+
+// Avoid blocking listeners
+// Because listeners execute synchronously, CPU-intensive listener logic delays other listeners and the caller.
+orderService.on("orderCreated", order => {
+	setImmediate(() => {
+	performExpensiveWork(order);
+	});
+});
+
+// An error event without an appropriate listener can terminate the process.
+orderService.on("error", error => {
+	console.error("Order service error:", error);
+});
+
+orderService.createOrder({
+    id: "ORD-101",
+    productId: "P-10"
+});
+
+/*******************************************
+		26. Find Second Largest Number
+*******************************************/
+//
 const arr = [10,50,20,100,60];
 
 const secondLargest =
@@ -292,7 +953,38 @@ const secondLargest =
 
 console.log(secondLargest);
 
-//27. Group By Property
+// Single-pass solution
+function findSecondLargest(numbers) {
+    let largest = -Infinity;
+    let secondLargest = -Infinity;
+
+    for (const number of numbers) {
+        if (number > largest) {
+            secondLargest = largest;
+            largest = number;
+        } else if (
+            number > secondLargest &&
+            number < largest
+        ) {
+            secondLargest = number;
+        }
+    }
+
+    if (secondLargest === -Infinity) {
+        return undefined;
+    }
+
+    return secondLargest;
+}
+
+console.log(findSecondLargest([10, 50, 20, 100, 60])); // 60
+
+console.log(findSecondLargest([10, 10])); // undefined
+
+/*******************************************
+		27. Group By Property
+*******************************************/
+//
 const users = [
  {name:"John", city:"Mumbai"},
  {name:"Sam", city:"Delhi"},
@@ -306,20 +998,140 @@ Object.groupBy(users,
 
 console.log(grouped);
 
-//28. Deep Clone Object
-const obj = {
-  name:'John',
-  address:{
-      city:'Mumbai'
-  }
+// using reduce
+function groupBy(values, getKey) {
+    return values.reduce((groups, value) => {
+        const key = getKey(value);
+
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+
+        groups[key].push(value);
+
+        return groups;
+    }, {});
+}
+
+const users = [
+    { name: "John", city: "Mumbai" },
+    { name: "Sam", city: "Delhi" },
+    { name: "David", city: "Mumbai" }
+];
+
+const groupedUsers = groupBy(
+    users,
+    user => user.city
+);
+
+console.log(groupedUsers);
+/* {
+Mumbai: [
+{ name: "John", city: "Mumbai" },
+{ name: "David", city: "Mumbai" }
+],
+Delhi: [
+{ name: "Sam", city: "Delhi" }
+]
+} */
+
+// Safer version using Map
+// Use this when grouping keys may not be strings.
+function groupByMap(values, getKey) {
+    const groups = new Map();
+
+    for (const value of values) {
+        const key = getKey(value);
+
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+
+        groups.get(key).push(value);
+    }
+
+    return groups;
+}
+
+/*******************************************
+		28. Deep Clone Object
+*******************************************/
+//
+const original = {
+    name: "Mayank",
+    address: {
+        city: "Vadodara"
+    },
+    createdAt: new Date(),
+    tags: new Set(["node", "react"])
 };
 
-const clone =
-structuredClone(obj);
+const clone = structuredClone(original);
 
-console.log(clone);
+clone.address.city = "Mumbai";
 
-//29. Retry Failed API Calls
+console.log(original.address.city); // Vadodara
+
+// Recursive Custom Clone
+function deepClone(value, visited = new WeakMap()) {
+    if (value === null || typeof value !== "object") {
+        return value;
+    }
+
+    if (visited.has(value)) {
+        return visited.get(value);
+    }
+
+    if (value instanceof Date) {
+        return new Date(value.getTime());
+    }
+
+    if (value instanceof RegExp) {
+        return new RegExp(value.source, value.flags);
+    }
+
+    if (value instanceof Map) {
+        const clone = new Map();
+        visited.set(value, clone);
+
+        for (const [key, entryValue] of value) {
+            clone.set(
+                deepClone(key, visited),
+                deepClone(entryValue, visited)
+            );
+        }
+
+        return clone;
+    }
+
+    if (value instanceof Set) {
+        const clone = new Set();
+        visited.set(value, clone);
+
+        for (const item of value) {
+            clone.add(deepClone(item, visited));
+        }
+
+        return clone;
+    }
+
+    const clone = Array.isArray(value)
+        ? []
+        : Object.create(Object.getPrototypeOf(value));
+
+    visited.set(value, clone);
+
+    for (const key of Reflect.ownKeys(value)) {
+        clone[key] = deepClone(value[key], visited);
+    }
+
+    return clone;
+}
+
+/*******************************************
+		29. Retry Failed API Calls
+*******************************************/
+//
 async function retry(fn,retries=3){
 
     try{
@@ -334,7 +1146,10 @@ async function retry(fn,retries=3){
     }
 }
 
-//30. Producer Consumer Queue
+/*******************************************
+		30. Producer Consumer Queue
+*******************************************/
+// A producer adds jobs. Consumers process jobs independently.
 const queue = [];
 
 function producer(data){
@@ -344,6 +1159,87 @@ function producer(data){
 function consumer(){
     return queue.shift();
 }
+
+// In-memory concurrent queue
+class TaskQueue {
+    constructor(concurrency = 1) {
+        if (concurrency <= 0) {
+            throw new Error(
+                "Concurrency must be greater than zero"
+            );
+        }
+
+        this.concurrency = concurrency;
+        this.running = 0;
+        this.queue = [];
+    }
+
+    add(task) {
+        return new Promise((resolve, reject) => {
+            this.queue.push({
+                task,
+                resolve,
+                reject
+            });
+
+            this.processNext();
+        });
+    }
+
+    processNext() {
+        while (
+            this.running < this.concurrency &&
+            this.queue.length > 0
+        ) {
+            const job = this.queue.shift();
+
+            this.running++;
+
+            Promise.resolve()
+                .then(() => job.task())
+                .then(job.resolve)
+                .catch(job.reject)
+                .finally(() => {
+                    this.running--;
+                    this.processNext();
+                });
+        }
+    }
+
+    get pendingCount() {
+        return this.queue.length;
+    }
+
+    get runningCount() {
+        return this.running;
+    }
+}
+// Usage
+const queue = new TaskQueue(2);
+
+function createTask(id, duration) {
+    return queue.add(async () => {
+        console.log(`Task ${id} started`);
+
+        await new Promise(resolve =>
+            setTimeout(resolve, duration)
+        );
+
+        console.log(`Task ${id} completed`);
+
+        return id;
+    });
+}
+
+Promise.all([
+    createTask(1, 1000),
+    createTask(2, 500),
+    createTask(3, 300),
+    createTask(4, 200)
+]).then(results => {
+    console.log("Results:", results);
+});
+//Only two tasks run simultaneously.
 
 /*
 //Senior Node.js Interview Questions (Must Prepare)
