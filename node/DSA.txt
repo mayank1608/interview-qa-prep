@@ -363,6 +363,47 @@ promise
 .then(res=>console.log(res))
 .catch(err=>console.log(err));
 
+// A Promise represents the eventual result of an asynchronous operation. It can be pending, fulfilled, or rejected.
+function getUserById(id) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (id <= 0) {
+                reject(new Error("Invalid user ID"));
+                return;
+            }
+
+            resolve({
+                id,
+                name: "Mayank"
+            });
+        }, 500);
+    });
+}
+
+// Using .then()
+getUserById(1)
+    .then(user => {
+        console.log(user);
+    })
+    .catch(error => {
+        console.error(error.message);
+    })
+    .finally(() => {
+        console.log("Operation completed");
+    });
+	
+// Using async/await
+async function displayUser() {
+    try {
+        const user = await getUserById(1);
+        console.log(user);
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+displayUser();
+
 /*******************************************
 		13. Promise.all Example
 *******************************************/
@@ -372,10 +413,52 @@ const p2 = Promise.resolve("API2");
 Promise.all([p1,p2])
 .then(result => console.log(result));
 
+// Promise.all() waits for all input promises to fulfill. It preserves input order in the result and rejects when the first input promise rejects. It does not automatically cancel the remaining operations.
+async function getDashboardData() {
+    const [user, orders, notifications] = await Promise.all([
+        fetchUser(),
+        fetchOrders(),
+        fetchNotifications()
+    ]);
+
+    return {
+        user,
+        orders,
+        notifications
+    };
+}
+/* When to use it
+Use it when operations:
+Are independent
+Can run concurrently
+Must all succeed */
+
+// Error handling
+async function getDashboardData() {
+    try {
+        return await Promise.all([
+            fetchUser(),
+            fetchOrders(),
+            fetchNotifications()
+        ]);
+    } catch (error) {
+        console.error("Dashboard loading failed:", error);
+        throw error;
+    }
+}
+
+// If every result is needed
+// Promise.allSettled() waits for all operations and returns each operation’s status.
+const results = await Promise.allSettled([
+    fetchUser(),
+    fetchOrders(),
+    fetchNotifications()
+]);
+
 /*******************************************
-		13. Promise.all Example
+		14. Sequential API Calls
 *******************************************/
-//14. Sequential API Calls
+//
 async function fetchData(){
 
     const user = await getUser();
@@ -385,10 +468,33 @@ async function fetchData(){
     return orders;
 }
 
+// Sequential calls are required when one operation depends on the previous operation.
+async function getUserOrders(userId) {
+    const user = await getUser(userId);
+    const orders = await getOrders(user.id);
+    const payments = await getPayments(orders[0].id);
+
+    return {
+        user,
+        orders,
+        payments
+    };
+}
+
+/* Execution flow
+
+getUser
+   ↓
+getOrders
+   ↓
+getPayments 
+
+Each operation waits for the previous operation.*/
+
 /*******************************************
-		13. Promise.all Example
+		15. Parallel API Calls
 *******************************************/
-//15. Parallel API Calls
+//
 async function getData(){
 
     const [users,orders] =
@@ -400,10 +506,55 @@ async function getData(){
     console.log(users,orders);
 }
 
+// 
+async function getHomePageData() {
+    const [products, categories, offers] = await Promise.all([
+        fetchProducts(),
+        fetchCategories(),
+        fetchOffers()
+    ]);
+
+    return {
+        products,
+        categories,
+        offers
+    };
+}
+
+// Controlled concurrency
+// A worker-pool pattern is safer.
+async function processWithConcurrency(items, limit, worker) {
+    const results = new Array(items.length);
+    let currentIndex = 0;
+
+    async function runWorker() {
+        while (currentIndex < items.length) {
+            const index = currentIndex++;
+            results[index] = await worker(items[index]);
+        }
+    }
+
+    const workers = Array.from(
+        { length: Math.min(limit, items.length) },
+        runWorker
+    );
+
+    await Promise.all(workers);
+
+    return results;
+}
+
+// Usage
+const results = await processWithConcurrency(
+    userIds,
+    5,
+    userId => fetchUser(userId)
+);
+
 /*******************************************
-		13. Promise.all Example
+		16. Event Loop Interview Question
 *******************************************/
-//16. Event Loop Interview Question
+//
 console.log("1");
 
 setTimeout(()=>{
@@ -416,15 +567,37 @@ Promise.resolve()
 });
 
 console.log("4"); // output: 1 4 3 2 
-Reason:
-Synchronous code
-Microtask Queue
-Callback Queue
+/* Reason:
+console.log("1") executes synchronously.
+Timer callback is scheduled.
+Promise callback is added to the microtask queue.
+console.log("4") executes synchronously.
+Microtasks run before the timer callback.
+Timer callback prints 2. */
+
+// Node.js-specific ordering question
+setTimeout(() => {
+    console.log("timeout");
+}, 0);
+
+setImmediate(() => {
+    console.log("immediate");
+});
+
+process.nextTick(() => {
+    console.log("nextTick");
+});
+
+Promise.resolve().then(() => {
+    console.log("promise");
+});
+
+// process.nextTick() is processed before the regular Promise microtask queue in Node.js. However, the relative order of a top-level zero-delay timer and setImmediate() should not always be treated as guaranteed.
 
 /*******************************************
-		13. Promise.all Example
+		17. Read File using Async/Await
 *******************************************/
-//17. Read File using Async/Await
+//
 const fs = require("fs").promises;
 
 async function readFile(){
@@ -434,16 +607,85 @@ async function readFile(){
     console.log(data);
 }
 
+// Node.js provides synchronous, callback-based, and Promise-based file-system APIs. Synchronous file operations block the event loop, while fs/promises provides asynchronous Promise-based operations.
+
+const fs = require("node:fs/promises");
+
+async function readConfiguration() {
+    try {
+        const content = await fs.readFile(
+            "./config.json",
+            "utf8"
+        );
+
+        return JSON.parse(content);
+    } catch (error) {
+        if (error.code === "ENOENT") {
+            throw new Error("Configuration file was not found");
+        }
+
+        if (error instanceof SyntaxError) {
+            throw new Error("Configuration contains invalid JSON");
+        }
+
+        throw error;
+    }
+}
+
+// Without an encoding, readFile() returns a Buffer.
+// readFile() loads the entire file into memory. Use a stream for very large files.
+const buffer = await fs.readFile("./test.txt");
+console.log(buffer);
+
 /*******************************************
-		13. Promise.all Example
+		18. Create Custom Middleware
 *******************************************/
-//18. Create Custom Middleware
+//
 const logger = (req,res,next)=>{
     console.log(req.method, req.url);
     next();
 };
 
 app.use(logger);
+
+// Express middleware receives req, res, and next. It can execute code, modify the request or response, terminate the request, or pass control to the next middleware. When middleware does not send a response, it must call next() or the request will remain pending.
+function requestLogger(req, res, next) {
+    const startedAt = Date.now();
+
+    res.on("finish", () => {
+        const duration = Date.now() - startedAt;
+
+        console.log({
+            method: req.method,
+            path: req.originalUrl,
+            statusCode: res.statusCode,
+            durationMs: duration
+        });
+    });
+
+    next();
+}
+
+app.use(requestLogger);
+
+// Error middleware has four parameters.
+function errorHandler(error, req, res, next) {
+    console.error(error);
+
+    res.status(error.statusCode || 500).json({
+        success: false,
+        message:
+            error.statusCode
+                ? error.message
+                : "Internal server error"
+    });
+}
+
+app.use(errorHandler);
+
+// Error-handling middleware should normally be registered after routes.
+app.use("/api/users", userRouter);
+app.use(errorHandler);
 
 /*******************************************
 		19. JWT Authentication Middleware
